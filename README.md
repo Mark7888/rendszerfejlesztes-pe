@@ -1,0 +1,2 @@
+# rendszerfejlesztes-pe
+Rendszerfejlesztés csapatmunka
