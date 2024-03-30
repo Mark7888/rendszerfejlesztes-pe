@@ -1,0 +1,22 @@
+version: "3"
+services:
+  web:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8023:8023"
+    depends_on:
+      - db
+  db:
+    image: 'mariadb:latest'
+    restart: unless-stopped
+    ports:
+      - "3636:3306"
+    env_file:
+      - .env
+    volumes:
+      - /var/lib/rendszer-fejlesztes/mysql:/var/lib/mysql
