@@ -6,7 +6,12 @@ from wtforms.validators import DataRequired, Length, Email, EqualTo
 import hashlib
 import json
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    static_url_path='',
+    static_folder='static',
+    template_folder='templates'
+)
 app.config['SECRET_KEY'] = 'your-secret-key'  # replace 'your-secret-key' with your actual secret key
 
 login_manager = LoginManager()
@@ -85,6 +90,11 @@ def load_user(user_id):
 @login_required
 def index():
     return render_template('index.html')
+
+@app.route('/blog', methods=['GET'])
+@login_required
+def blog():
+    return render_template('blog.html')
 
 @app.route('/get_topics', methods=['GET'])
 @login_required
