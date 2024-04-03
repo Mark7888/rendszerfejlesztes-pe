@@ -21,4 +21,4 @@ EXPOSE 8088
 ENV FLASK_APP server.py
 
 # Run flask when the container launches
-CMD ["gunicorn", "--bind", "0.0.0.0:8088", "server:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8023", "server:app"]
