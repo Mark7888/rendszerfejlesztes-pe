@@ -32,12 +32,6 @@ class User(UserMixin):
         # check the password from the database
         return password == 'password'  # replace 'password' with the actual password
 
-
-class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    submit = SubmitField('Login')
-
 class Topic:
     def __init__(self, name):
         self.id = generate_hash(name)
