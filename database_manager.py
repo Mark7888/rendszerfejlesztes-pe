@@ -30,9 +30,9 @@ class DatabaseManager:
 
     def create_tables(self):
         self.cursor.execute("CREATE TABLE IF NOT EXISTS Users (Id INT AUTO_INCREMENT PRIMARY KEY, Username VARCHAR(255) UNIQUE, Name VARCHAR(255), Password VARCHAR(255)) ENGINE=InnoDB;")
-        self.cursor.execute("CREATE TABLE IF NOT EXISTS Topics (Id INT AUTO_INCREMENT PRIMARY KEY, Name VARCHAR(255), TypeId INT, Description TEXT) ENGINE=InnoDB;")
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS TopicTypes (Id INT AUTO_INCREMENT PRIMARY KEY, Name VARCHAR(255)) ENGINE=InnoDB;")
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS Topics (Id INT AUTO_INCREMENT PRIMARY KEY, Name VARCHAR(255), TypeId INT, Description TEXT, FOREIGN KEY (TypeId) REFERENCES TopicTypes(Id)) ENGINE=InnoDB;")
         self.cursor.execute("CREATE TABLE IF NOT EXISTS FavoriteTopics (UserId INT, TopicId INT, FOREIGN KEY (UserId) REFERENCES Users(Id), FOREIGN KEY (TopicId) REFERENCES Topics(Id)) ENGINE=InnoDB;")
-        self.cursor.execute("CREATE TABLE IF NOT EXISTS TopicTypes (Id INT AUTO_INCREMENT PRIMARY KEY, Name VARCHAR(255), FOREIGN KEY (Id) REFERENCES Topics(TypeId)) ENGINE=InnoDB;")
         self.cursor.execute("CREATE TABLE IF NOT EXISTS Comments (Id INT AUTO_INCREMENT PRIMARY KEY, UserId INT, TopicId INT, Body TEXT, Timestamp DATETIME(3), FOREIGN KEY (UserId) REFERENCES Users(Id), FOREIGN KEY (TopicId) REFERENCES Topics(Id)) ENGINE=InnoDB;")
         self.connection.commit()
 
