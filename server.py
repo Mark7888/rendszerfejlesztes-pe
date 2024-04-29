@@ -5,6 +5,7 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 import hashlib
 import json
+from database_manager import DatabaseManager
 
 app = Flask(
     __name__,
@@ -25,35 +26,14 @@ def generate_hash(string):
     return sha_signature
 
 
+database_manager = DatabaseManager()
+
 class User(UserMixin):
     def __init__(self, id):
         self.id = id
     def check_password(self, password):
         # check the password from the database
         return password == 'password'  # replace 'password' with the actual password
-
-class Topic:
-    def __init__(self, name):
-        self.id = generate_hash(name)
-        self.name = name
-        self.comments = []
-
-class TopicContainer:
-    def __init__(self):
-        self.topics = []
-
-    def add_topic(self, topic):
-        self.topics.append(topic)
-
-    def get_topics(self):
-        return self.topics
-
-class TopicComment:
-    def __init__(self, comment, username, datetime):
-        self.id = generate_hash(username + datetime + comment)
-        self.comment = comment
-        self.username = username
-        self.datetime = datetime
 
 
 @login_manager.unauthorized_handler
@@ -106,31 +86,52 @@ def blog():
 @app.route('/get_topics', methods=['GET'])
 @login_required
 def get_topics():
-    blog_topics = ['Technology', 'Travel', 'Fitness', 'Food', 'Fashion', 'Music', 'Lifestyle', 'Education', 'Finance', 'Healthcare', 'Sport', 'Gaming']
-    return Response(json.dumps({'topics': blog_topics}), mimetype='application/json')
+    type_id = request.args.get('type_id')
+    if type_id:
+        topics = database_manager.get_topics_by_type(type_id)
+    else:
+        topics = database_manager.get_topics()
+    
+    return Response(json.dumps({'topics': topics}), mimetype='application/json')
+
+@app.route('/get_topic_types', methods=['GET'])
+@login_required
+def get_topic_types():
+    topic_types = database_manager.get_topic_types()
+    return Response(json.dumps({'topic_types': topic_types}), mimetype='application/json')
 
 @app.route('/get_comments', methods=['GET'])
 @login_required
 def get_comments():
     topic_id = request.args.get('topic_id')
-    return Response(json.dumps({'comments': ['comment1', 'comment2', 'comment3']}), mimetype='application/json')
+    comments = database_manager.get_comments(topic_id)
+    return Response(json.dumps({'comments': comments}), mimetype='application/json')
 
 @app.route('/add_comment', methods=['POST'])
 @login_required
 def add_comment():
-    topic_id = request.form['topic_id']
-    comment = request.form['comment']
+    topic_id = request.form.get('topic_id')
+    comment = request.form.get('comment')
+    if not comment or not topic_id:
+        return Response(json.dumps({'status': 'error', 'message': 'Invalid comment'}), mimetype='application/json')
 
     # get logged in username
     username = current_user.id
+    database_manager.add_comment(topic_id, username, comment)
 
     return Response(json.dumps({'status': 'success'}), mimetype='application/json')
+
 
 @app.route('/get_topics_commented', methods=['GET'])
 @login_required
 def get_topics_commented():
-    # get the topics the logged in user commented on
-    return Response(json.dumps({'topics': ['topic1', 'topic2']}), mimetype='application/json')
+    # get logged in username
+    username = current_user.id
+    topics = database_manager.get_topics_commented(username)
+    return Response(json.dumps({'topics': topics}), mimetype='application/json')
 
+
+
+# DEBUG
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
