@@ -15,8 +15,10 @@ services:
     image: 'mariadb:latest'
     restart: unless-stopped
     ports:
-      - "3636:3306"
+      - "3306:3306"
     env_file:
       - .env
+    environment:
+      - MYSQL_HOST="0.0.0.0"
     volumes:
       - /var/lib/rendszer-fejlesztes/mysql:/var/lib/mysql
