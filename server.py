@@ -32,8 +32,8 @@ class User(UserMixin):
     def __init__(self, id):
         self.id = id
     def check_password(self, password):
-        # check the password from the database
-        return password == 'password'  # replace 'password' with the actual password
+        user = database_manager.get_user(self.id)
+        return user['password'] == password
 
 
 @login_manager.unauthorized_handler
@@ -81,7 +81,9 @@ def index_login():
 @app.route('/blog', methods=['GET'])
 @login_required
 def blog():
-    return render_template('blog.html')
+    resp = make_response(render_template('blog.html'))
+    resp.set_cookie('loggedInUser', current_user.id)
+    return resp
 
 @app.route('/get_topics', methods=['GET'])
 @login_required
@@ -91,6 +93,13 @@ def get_topics():
         topics = database_manager.get_topics_by_type(type_id)
     else:
         topics = database_manager.get_topics()
+    
+    favorites = database_manager.get_favorite_topics(current_user.id)
+
+    for t in topics:
+        t['comments'] = []
+        if t['id'] in favorites:
+            t['favorite'] = True
     
     return Response(json.dumps({'topics': topics}), mimetype='application/json')
 
@@ -117,9 +126,37 @@ def add_comment():
 
     # get logged in username
     username = current_user.id
-    database_manager.add_comment(topic_id, username, comment)
+    database_manager.add_comment(username, topic_id, comment)
 
     return Response(json.dumps({'status': 'success'}), mimetype='application/json')
+
+
+@app.route('/add_favorite', methods=['POST'])
+@login_required
+def add_favorite():
+    topic_id = request.form.get('topic_id')
+    if not topic_id:
+        return Response(json.dumps({'status': 'error', 'message': 'Invalid topic'}), mimetype='application/json')
+
+    # get logged in username
+    username = current_user.id
+    database_manager.add_favorite_topic(username, topic_id)
+
+    return Response(json.dumps({'status': 'success'}), mimetype='application/json')
+
+@app.route('/remove_favorite', methods=['POST'])
+@login_required
+def remove_favorite():
+    topic_id = request.form.get('topic_id')
+    if not topic_id:
+        return Response(json.dumps({'status': 'error', 'message': 'Invalid topic'}), mimetype='application/json')
+
+    # get logged in username
+    username = current_user.id
+    database_manager.remove_favorite_topic(username, topic_id)
+
+    return Response(json.dumps({'status': 'success'}), mimetype='application/json')
+
 
 
 @app.route('/get_topics_commented', methods=['GET'])

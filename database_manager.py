@@ -62,9 +62,9 @@ class DatabaseManager:
         for topic_data in topics_data:
             topics.append({
                 "id": topic_data[0],
-                "name": topic_data[1],
+                "title": topic_data[1],
                 "type_id": topic_data[2],
-                "description": topic_data[3]
+                "content": topic_data[3]
             })
         
         return topics
@@ -108,7 +108,7 @@ class DatabaseManager:
                 "username": comment_data[1],
                 "topic_id": comment_data[2],
                 "body": comment_data[3],
-                "timestamp": comment_data[4]
+                "timestamp": comment_data[4].strftime("%Y-%m-%d %H:%M:%S")
             })
         
         return comments
@@ -123,10 +123,7 @@ class DatabaseManager:
 
         favorites = []
         for favorite_data in favorites_data:
-            favorites.append({
-                "username": favorite_data[0],
-                "topic_id": favorite_data[1]
-            })
+            favorites.append(favorite_data[1])
 
         return favorites
     

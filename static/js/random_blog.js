@@ -1,53 +1,87 @@
-var blogData = [
-    {
-        id: 1,
-        title: "Exciting News in the World of Technology",
-        content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce in mi eget magna pretium mattis. Ut euismod neque id mi rhoncus viverra.",
-        favorite: false,
-        comments: []
-    },
-    {
-        id: 2,
-        title: "New bgbg in Health and Wellness",
-        content: "asdauet, lobortis elit non, tempus leo. Integer congue libero non nisi vestibulum, vitae commodo velit eleifend.",
-        favorite: false,
-        comments: []
-    },
-    {
-        id: 3,
-        title: "New Developments in Health and Wellness",
-        content: "Sed eget risus aliquet, lobortis elit non, tempus leo. Integer congue libero non nisi vestibulum, vitae commodo velit eleifend.",
-        favorite: false,
-        comments: []
-    },
-    {
-        id: 4,
-        title: "Recent Trends in Fashion and Style",
-        content: "Aenean eget elit vehicula, vestibulum arcu vel, euismod purus. In ut commodo ipsum. Vivamus in dui auctor, fermentum felis ac, tempus sapien.",
-        favorite: false,
-        comments: []
-    }
-];
+var blogData = [];
+var topicTypes = [];
 
-var topicsData = [
-    { id: 1, name: "Photography" },
-    { id: 2, name: "PC" },
-    { id: 3, name: "Media" },
-    { id: 4, name: "Games" },
-    { id: 5, name: "World" },
-    { id: 6, name: "Etc" }
-];
+var currentPage = 1;
+var blogsPerPage = 3;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadTopicTypes();
+});
+
+function loadTopicTypes() {
+    fetch('/get_topic_types')
+        .then(response => response.json())
+        .then(data => {
+            topicTypes = data['topic_types'];
+
+            loadBlogData();
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function loadBlogData() {
+    fetch('/get_topics')
+        .then(response => response.json())
+        .then(data => {
+            blogData = data['topics'];
+
+            generateTopicChooser();
+            generateBlogCards(topicTypes.map(topic => topic.id), currentPage);
+            initializeTopicButtons();
+        })
+        .catch(error => console.error('Error:', error));
+}
+
 
 function displayFavorites() {
     var favoriteBlogs = blogData.filter(blog => blog.favorite);
     generateBlogCards(favoriteBlogs.map(blog => blog.id), currentPage);
 }
 
+function displayCommentedOn() {
+    fetch('/get_topics_commented')
+        .then(response => response.json())
+        .then(data => {
+            var commentedBlogIds = data['topics'];
+            var commentedBlogs = blogData.filter(blog => commentedBlogIds.includes(blog.id));
+            generateBlogCards(commentedBlogs.map(blog => blog.id), currentPage);
+        })
+        .catch(error => console.error('Error:', error));
+    // TODO - commented
+}
 
 function toggleFavorite(blogId) {
     var blog = blogData.find(blog => blog.id === blogId);
     blog.favorite = !blog.favorite;
     document.getElementById('favoriteButton').textContent = blog.favorite ? 'Remove from Favorites' : 'Add to Favorites';
+
+    if (blog.favorite) {
+        fetch('/add_favorite', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `topic_id=${blogId}`
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Added to favorites:', blogId);
+            })
+            .catch(error => console.error('Error:', error));
+    } else {
+        fetch('/remove_favorite', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `topic_id=${blogId}`
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Removed from favorites:', blogId);
+            })
+            .catch(error => console.error('Error:', error));
+    }
 
     displayFavorites();
 }
@@ -61,9 +95,10 @@ function generateTopicChooser() {
             <h1>Choose Topics</h1>
         </div>
         <div class="text-center">
-            <button type="button" class="mb-0 btn btn-primary topic-button" data-topic-id="0">My Favorites</button>
+            <button type="button" class="mb-0 btn btn-primary topic-button" data-topic-id="favorite">My Favorites</button>
+            <button type="button" class="mb-0 btn btn-primary topic-button" data-topic-id="commented">Commented On</button>
     `;
-    topicsData.forEach(function(topic) {
+    topicTypes.forEach(function(topic) {
         topicChooserHtml += `
             <button type="button" class="mb-0 btn btn-primary topic-button" data-topic-id="${topic.id}">
                 ${topic.name}
@@ -73,8 +108,12 @@ function generateTopicChooser() {
     topicChooserHtml += `</div>`;
     document.getElementById("topic-chooser").innerHTML = topicChooserHtml;
 
-    document.querySelector('.topic-button[data-topic-id="0"]').addEventListener('click', function() {
+    document.querySelector('.topic-button[data-topic-id="favorite"]').addEventListener('click', function() {
         displayFavorites();
+    });
+
+    document.querySelector('.topic-button[data-topic-id="commented"]').addEventListener('click', function() {
+        displayCommentedOn();
     });
 }
 
@@ -98,7 +137,7 @@ function generateBlogCards(selectedTopics, currentPage) {
     var blogContainer = document.getElementById("blog-container");
     blogContainer.innerHTML = "";
 
-    var filteredBlogs = blogData.filter(blog => selectedTopics.includes(blog.id));
+    var filteredBlogs = blogData.filter(blog => selectedTopics.includes(blog.type_id));
 
     var totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
     var startIndex = (currentPage - 1) * blogsPerPage;
@@ -148,8 +187,10 @@ function initializeTopicButtons() {
         button.addEventListener("click", function() {
             button.classList.toggle("active");
 
-            if (button.dataset.topicId === "0" && button.classList.contains("active")) {
+            if (button.dataset.topicId === "favorite" && button.classList.contains("active")) {
                 displayFavorites();
+            } else if (button.dataset.topicId === "commented" && button.classList.contains("active")) {
+                displayCommentedOn();
             } else {
                 generateBlogCards(getSelectedTopics(), currentPage);
             }
@@ -221,67 +262,41 @@ function openBlogPopup(blogId) {
 
 function submitComment(blogId) {
     var commentText = document.getElementById('commentTextarea').value;
-    var loggedInUser = localStorage.getItem("loggedInUser");
-    var username = loggedInUser ? loggedInUser : "Guest";
-    var timestamp = new Date().toLocaleString();
-    var comment = username + " - " + commentText + " (" + timestamp + ")";
 
-    var storedComments = JSON.parse(localStorage.getItem('blogComments')) || {};
-    storedComments[blogId] = storedComments[blogId] || [];
-    storedComments[blogId].push(comment);
-    localStorage.setItem('blogComments', JSON.stringify(storedComments));
-
-    console.log('Submitted comment:', comment);
-
-    displayComments(blogId);
+    fetch('/add_comment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `topic_id=${blogId}&comment=${encodeURIComponent(commentText)}`
+    })
+        .then(response => response.json())
+        .then(data => {
+            displayComments(blogId);
+        })
+        .catch(error => console.error('Error:', error));
 }
 
 function displayComments(blogId) {
-    var commentList = document.getElementById('commentList');
-    commentList.innerHTML = '';
 
-    var storedComments = JSON.parse(localStorage.getItem('blogComments')) || {};
-    var comments = storedComments[blogId] || [];
+    console.log("displayComments>" + blogId + "<");
 
-    if (comments.length > 0) {
-        comments.forEach(function(comment) {
-            var commentItem = document.createElement('li');
-            commentItem.textContent = comment;
-            commentList.appendChild(commentItem);
-        });
-    } else {
-        commentList.innerHTML = '<li>No comments yet.</li>';
-    }
+    fetch('/get_comments?topic_id=' + blogId)
+        .then(response => response.json())
+        .then(data => {
+            var comments = data['comments'];
+            var commentList = document.getElementById('commentList');
+            commentList.innerHTML = '';
+
+            if (comments.length > 0) {
+                comments.forEach(function(comment) {
+                    var commentItem = document.createElement('li');
+                    commentItem.textContent = comment['username'] + " - " + comment['body'] + ' (' + comment['timestamp'] + ')';
+                    commentList.appendChild(commentItem);
+                });
+            } else {
+                commentList.innerHTML = '<li>No comments yet.</li>';
+            }
+        })
+        .catch(error => console.error('Error:', error));
 }
-
-
-
-
-
-
-
-
-
-
-
-
-function closePopup() {
-    var popup = document.querySelector('.popup-overlay');
-    popup.parentNode.removeChild(popup);
-}
-
-
-function toggleFavorite(blogId) {
-    var blog = blogData.find(blog => blog.id === blogId);
-    blog.favorite = !blog.favorite;
-    document.getElementById('favoriteButton').textContent = blog.favorite ? 'Remove from Favorites' : 'Add to Favorites';
-}
-
-
-
-var currentPage = 1;
-var blogsPerPage = 3;
-
-generateTopicChooser();
-generateBlogCards(topicsData.map(topic => topic.id), currentPage);
-initializeTopicButtons();
