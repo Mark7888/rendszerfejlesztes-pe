@@ -47,7 +47,6 @@ function displayCommentedOn() {
             generateBlogCards(commentedBlogs.map(blog => blog.id), currentPage);
         })
         .catch(error => console.error('Error:', error));
-    // TODO - commented
 }
 
 function toggleFavorite(blogId) {
@@ -107,14 +106,6 @@ function generateTopicChooser() {
     });
     topicChooserHtml += `</div>`;
     document.getElementById("topic-chooser").innerHTML = topicChooserHtml;
-
-    document.querySelector('.topic-button[data-topic-id="favorite"]').addEventListener('click', function() {
-        displayFavorites();
-    });
-
-    document.querySelector('.topic-button[data-topic-id="commented"]').addEventListener('click', function() {
-        displayCommentedOn();
-    });
 }
 
 
@@ -202,6 +193,10 @@ function initializeTopicButtons() {
 function getSelectedTopics() {
     var selectedTopics = [];
     var activeButtons = document.querySelectorAll(".topic-button.active");
+    if (activeButtons.length === 0) {
+        return topicTypes.map(topic => topic.id); // Return all topics if none are selected
+    }
+
     activeButtons.forEach(function(activeButton) {
         selectedTopics.push(parseInt(activeButton.dataset.topicId));
     });
