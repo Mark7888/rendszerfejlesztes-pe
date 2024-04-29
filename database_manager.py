@@ -98,7 +98,7 @@ class DatabaseManager:
         return topic
     
     def get_comments(self, topic_id):
-        self.cursor.execute("SELECT * FROM Comments WHERE TopicId = %s", (topic_id,))
+        self.cursor.execute("SELECT * FROM Comments WHERE TopicId = %s ORDER BY Timestamp DESC", (topic_id,))
         comments_data = self.cursor.fetchall()
 
         comments = []
