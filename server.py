@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, request, redirect, url_for
+from flask import Flask, render_template, Response, request, redirect, url_for, make_response
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
@@ -34,7 +34,7 @@ class User(UserMixin):
 
 
 class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
+    username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
@@ -62,24 +62,17 @@ class TopicComment:
         self.datetime = datetime
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        # validate the user from the database
-        user = User(form.username.data)
-        if not user.check_password(form.password.data):
-            return 'Invalid username or password'
+@login_manager.unauthorized_handler
+def unauthorized_callback():
+    return redirect('/?login=1')
 
-        login_user(user)
-        return redirect(url_for('index'))
-    return render_template('login.html', form=form)
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -87,9 +80,29 @@ def load_user(user_id):
 
 
 @app.route('/', methods=['GET'])
-@login_required
 def index():
-    return render_template('index.html')
+    is_login = request.args.get('login') == '1'
+    login_error = request.args.get('login_error') == '1'
+
+    if current_user.is_authenticated:
+        resp = make_response(render_template('index.html'))
+        resp.set_cookie('loggedInUser', current_user.id)
+        return resp
+
+    return render_template('index.html', login=is_login, login_error=login_error)
+
+@app.route('/', methods=['POST'])
+def index_login():
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    user = User(username)
+    if user.check_password(password):
+        login_user(user)
+        return redirect(url_for('index'))
+
+    return redirect(url_for('index') + '?login=1&login_error=1')
+
 
 @app.route('/blog', methods=['GET'])
 @login_required

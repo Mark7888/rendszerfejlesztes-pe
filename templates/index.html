@@ -13,7 +13,7 @@
         <link href="/css/style.css" rel="stylesheet" />
         <link rel="stylesheet" href="/css/bootstrap.css" />
     </head>
-    <body>
+    <body data-login="{{ login }}" data-login-error="{{ login_error }}">
         <div class="background-container">
             <div class="background-image"></div>
             <div class="background-overlay"></div>
@@ -57,11 +57,10 @@
                 >
                     <button
                         class="btn btn-outline-primary mt-lg-0 me-lg-2 mt-2"
-                        id="userButton"
-                        data-bs-toggle="modal"
-                        data-bs-target="#loginModal"
+                        id="loginLogoutButton"
+                        onclick="loginLogout()"
                     >
-                        USER
+                        Login
                     </button>
                 </div>
             </div>
@@ -73,9 +72,8 @@
             <span id="showTopicsButton">
                 <a
                     class="btn btn-primary"
-                    href="#"
+                    href="/blog"
                     id="showTopicsButton"
-                    onclick="checkLoggedIn()"
                     >SHOW TOPICS</a
                 >
             </span>
@@ -96,7 +94,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="loginModalLabel">
-                            Login or Register
+                            Login
                         </h5>
                         <button
                             type="button"
@@ -108,94 +106,45 @@
                     <div class="modal-body">
                         <div id="loginForm">
                             <h5>Login</h5>
-                            <form id="loginForm">
+                            <div id="errorMessage" class="alert alert-danger d-none">Invalid username or password</div>
+                            <form id="loginForm" action="/" method="post">
                                 <div class="mb-3">
                                     <label
-                                        for="loginUsername"
+                                        for="username"
                                         class="form-label"
                                         >Username</label
                                     >
                                     <input
                                         type="text"
                                         class="form-control"
-                                        id="loginUsername"
+                                        id="username"
+                                        name="username"
                                     />
                                 </div>
                                 <div class="mb-3">
                                     <label
-                                        for="loginPassword"
+                                        for="password"
                                         class="form-label"
                                         >Password</label
                                     >
                                     <input
                                         type="password"
                                         class="form-control"
-                                        id="loginPassword"
+                                        id="password"
+                                        name="password"
                                     />
                                 </div>
-                                <button type="submit" class="btn btn-primary">
-                                    Login
+                                <input type="submit" value="Login" class="btn btn-primary"/>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary"
+                                    data-bs-dismiss="modal"
+                                >
+                                    Close
                                 </button>
                             </form>
                         </div>
-                        <div id="registerForm" style="display: none">
-                            <h5>Register</h5>
-                            <form id="registerForm">
-                                <div class="mb-3">
-                                    <label for="registerName" class="form-label"
-                                        >Name</label
-                                    >
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        id="registerName"
-                                    />
-                                </div>
-                                <div class="mb-3">
-                                    <label
-                                        for="registerUsername"
-                                        class="form-label"
-                                        >Username</label
-                                    >
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        id="registerUsername"
-                                    />
-                                </div>
-                                <div class="mb-3">
-                                    <label
-                                        for="registerPassword"
-                                        class="form-label"
-                                        >Password</label
-                                    >
-                                    <input
-                                        type="password"
-                                        class="form-control"
-                                        id="registerPassword"
-                                    />
-                                </div>
-                                <button type="submit" class="btn btn-primary">
-                                    Register
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button
-                            type="button"
-                            class="btn btn-secondary"
-                            id="toggleRegister"
-                        >
-                            Register
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal"
-                        >
-                            Close
-                        </button>
                     </div>
                 </div>
             </div>

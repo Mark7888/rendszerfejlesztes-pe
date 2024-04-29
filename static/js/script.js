@@ -1,99 +1,67 @@
-function checkLoggedIn() {
-  const loggedInUser = localStorage.getItem("loggedInUser");
+
+function getCookie(name) {
+  let cookieArr = document.cookie.split("; ");
+  for(let i = 0; i < cookieArr.length; i++) {
+      let cookiePair = cookieArr[i].split("=");
+      if(name == cookiePair[0]) {
+          return decodeURIComponent(cookiePair[1]);
+      }
+  }
+  return null;
+}
+
+function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+        let date = new Date();
+        date.setTime(date.getTime() + (days*24*60*60*1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+}
+
+function removeCookie(name) { 
+    document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+
+function loginLogout() {
+  const loggedInUser = getCookie('loggedInUser');
   if (loggedInUser) {
-    window.location.href = "/blog";
+    removeCookie("loggedInUser");
+    window.location.href = "/logout";
   } else {
     $("#loginModal").modal("show");
   }
 }
 
-document.getElementById("userButton").addEventListener("click", function () {
-  const loggedInUser = localStorage.getItem("loggedInUser");
-  if (loggedInUser) {
-    localStorage.removeItem("loggedInUser");
-    window.location.href = "/";
-  }
-});
 
-document.addEventListener("DOMContentLoaded", function () {
-  const userButton = document.getElementById("userButton");
-  const loginForm = document.getElementById("loginForm");
-  const registerForm = document.getElementById("registerForm");
-  const toggleRegisterButton = document.getElementById("toggleRegister");
+window.addEventListener("load", function () {
+  const userButton = document.getElementById("loginLogoutButton");
+  
+  const doLogin = document.body.dataset.login === 'True';
 
-  const loggedInUser = localStorage.getItem("loggedInUser");
-
+  const loggedInUser = getCookie('loggedInUser');
   if (loggedInUser) {
     userButton.textContent = "Logout";
   }
+  else {
+    if (doLogin === true) {
+      $("#loginModal").modal("show");
 
-  toggleRegisterButton.addEventListener("click", function () {
-    if (loginForm.style.display === "none") {
-      loginForm.style.display = "block";
-      registerForm.style.display = "none";
-      toggleRegisterButton.textContent = "Register";
-    } else {
-      loginForm.style.display = "none";
-      registerForm.style.display = "block";
-      toggleRegisterButton.textContent = "Login";
+      const loginError = document.body.dataset.loginError === 'True';
+      if (loginError) {
+        let errorMessage = document.getElementById('errorMessage');
+        errorMessage.classList.remove('d-none');
+      }
     }
-  });
-
-  document
-    .getElementById("loginForm")
-    .addEventListener("submit", function (event) {
-      event.preventDefault();
-
-      const username = document.getElementById("loginUsername").value;
-      const password = document.getElementById("loginPassword").value;
-
-      const storedUser = JSON.parse(localStorage.getItem(username));
-
-      if (storedUser && storedUser.password === password) {
-        localStorage.setItem("loggedInUser", username);
-        userButton.textContent = "Logout";
-        $("#loginModal").modal("hide");
-        window.location.href = "/blog";
-      } else {
-        alert("Invalid username or password");
-      }
-    });
-
-  document
-    .getElementById("registerForm")
-    .addEventListener("submit", function (event) {
-      event.preventDefault();
-
-      const name = document.getElementById("registerName").value;
-      const username = document.getElementById("registerUsername").value;
-      const password = document.getElementById("registerPassword").value;
-
-      if (localStorage.getItem(username)) {
-        alert("Username already exists");
-        return;
-      }
-
-      const newUser = {
-        name: name,
-        username: username,
-        password: password,
-      };
-
-      localStorage.setItem(username, JSON.stringify(newUser));
-
-      alert(
-        "Registration successful!\nName: " + name + "\nUsername: " + username,
-      );
-
-      $("#toggleRegister").click();
-    });
+  }
 
   userButton.addEventListener("click", function () {
-    const loggedInUser = localStorage.getItem("loggedInUser");
+    const loggedInUser = getCookie('loggedInUser');
     if (loggedInUser) {
-      localStorage.removeItem("loggedInUser");
-      userButton.textContent = "USER";
-      window.location.href = "/";
+      removeCookie("loggedInUser");
+      window.location.href = "/logout";
     }
   });
 });
