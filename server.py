@@ -26,12 +26,12 @@ def generate_hash(string):
     return sha_signature
 
 
-database_manager = DatabaseManager()
-
 class User(UserMixin):
     def __init__(self, id):
         self.id = id
     def check_password(self, password):
+        database_manager = DatabaseManager()
+
         user = database_manager.get_user(self.id)
         return user['password'] == password
 
@@ -88,6 +88,8 @@ def blog():
 @app.route('/get_topics', methods=['GET'])
 @login_required
 def get_topics():
+    database_manager = DatabaseManager()
+
     type_id = request.args.get('type_id')
     if type_id:
         topics = database_manager.get_topics_by_type(type_id)
@@ -106,12 +108,16 @@ def get_topics():
 @app.route('/get_topic_types', methods=['GET'])
 @login_required
 def get_topic_types():
+    database_manager = DatabaseManager()
+
     topic_types = database_manager.get_topic_types()
     return Response(json.dumps({'topic_types': topic_types}), mimetype='application/json')
 
 @app.route('/get_comments', methods=['GET'])
 @login_required
 def get_comments():
+    database_manager = DatabaseManager()
+
     topic_id = request.args.get('topic_id')
     comments = database_manager.get_comments(topic_id)
     return Response(json.dumps({'comments': comments}), mimetype='application/json')
@@ -119,6 +125,8 @@ def get_comments():
 @app.route('/add_comment', methods=['POST'])
 @login_required
 def add_comment():
+    database_manager = DatabaseManager()
+
     topic_id = request.form.get('topic_id')
     comment = request.form.get('comment')
     if not comment or not topic_id:
@@ -134,6 +142,8 @@ def add_comment():
 @app.route('/add_favorite', methods=['POST'])
 @login_required
 def add_favorite():
+    database_manager = DatabaseManager()
+
     topic_id = request.form.get('topic_id')
     if not topic_id:
         return Response(json.dumps({'status': 'error', 'message': 'Invalid topic'}), mimetype='application/json')
@@ -147,6 +157,8 @@ def add_favorite():
 @app.route('/remove_favorite', methods=['POST'])
 @login_required
 def remove_favorite():
+    database_manager = DatabaseManager()
+
     topic_id = request.form.get('topic_id')
     if not topic_id:
         return Response(json.dumps({'status': 'error', 'message': 'Invalid topic'}), mimetype='application/json')
@@ -162,7 +174,8 @@ def remove_favorite():
 @app.route('/get_topics_commented', methods=['GET'])
 @login_required
 def get_topics_commented():
-    # get logged in username
+    database_manager = DatabaseManager()
+
     username = current_user.id
     topics = database_manager.get_topics_commented(username)
     return Response(json.dumps({'topics': topics}), mimetype='application/json')
