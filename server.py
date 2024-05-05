@@ -105,6 +105,8 @@ def get_topics():
         t['comments'] = []
         if t['id'] in favorites:
             t['favorite'] = True
+        else:
+            t['favorite'] = False
     
     return Response(json.dumps({'topics': topics}), mimetype='application/json')
 

@@ -128,7 +128,7 @@ function generateBlogCards(selectedTopics, currentPage) {
     var blogContainer = document.getElementById("blog-container");
     blogContainer.innerHTML = "";
 
-    var filteredBlogs = blogData.filter(blog => selectedTopics.includes(blog.type_id));
+    var filteredBlogs = blogData.filter(blog => selectedTopics.includes(blog.id));
 
     var totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
     var startIndex = (currentPage - 1) * blogsPerPage;
@@ -183,14 +183,14 @@ function initializeTopicButtons() {
             } else if (button.dataset.topicId === "commented" && button.classList.contains("active")) {
                 displayCommentedOn();
             } else {
-                generateBlogCards(getSelectedTopics(), currentPage);
+                generateBlogCards(getSelectedBlogs(), currentPage);
             }
         });
     });
 }
 
 
-function getSelectedTopics() {
+function getSelectedBlogs() {
     var selectedTopics = [];
     var activeButtons = document.querySelectorAll(".topic-button.active");
     if (activeButtons.length === 0) {
@@ -200,7 +200,11 @@ function getSelectedTopics() {
     activeButtons.forEach(function(activeButton) {
         selectedTopics.push(parseInt(activeButton.dataset.topicId));
     });
-    return selectedTopics;
+
+    let selectedBlogIds = blogData
+        .filter(blog => selectedTopics.includes(blog.type_id))
+        .map(blog => blog.id);
+    return selectedBlogIds;
 }
 
 function openBlogPopup(blogId) {
