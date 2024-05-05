@@ -94,12 +94,12 @@ function generateTopicChooser() {
             <h1>Choose Topics</h1>
         </div>
         <div class="text-center">
-            <button type="button" class="mb-0 btn btn-primary topic-button" data-topic-id="favorite">My Favorites</button>
-            <button type="button" class="mb-0 btn btn-primary topic-button" data-topic-id="commented">Commented On</button>
+            <button type="button" class="mb-0 btn btn-primary topic-button mb-3" data-topic-id="favorite">My Favorites</button>
+            <button type="button" class="mb-0 btn btn-primary topic-button mb-3" data-topic-id="commented">Commented On</button>
     `;
     topicTypes.forEach(function(topic) {
         topicChooserHtml += `
-            <button type="button" class="mb-0 btn btn-primary topic-button" data-topic-id="${topic.id}">
+            <button type="button" class="mb-0 btn btn-primary topic-button mb-3" data-topic-id="${topic.id}">
                 ${topic.name}
             </button>
         `;
