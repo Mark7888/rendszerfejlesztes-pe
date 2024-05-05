@@ -1,73 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body {
-    background-color: #f44336;
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: flex-end; 
-    align-items: flex-end; 
-    overflow: hidden; 
-}
-
-.alert {
-    padding: 20px;
-    background-color: white;
-    color: #f44336;
-    position: relative;
-    margin: 20px; 
-    max-width: 400px; 
-    opacity: 0;
-    animation: slideInFromBottom 0.5s forwards; 
-}
-
-@keyframes slideInFromBottom {
-    from {
-        opacity: 0;
-        transform: translateY(100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideOutToBottom {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(100%);
-    }
-}
-
-.alert_text {
-    color: #f44336;
-    margin: 0; 
-    overflow-wrap: break-word; 
-    word-wrap: break-word; 
-}
-
-.button-container {
-    display: flex;
-    justify-content: flex-end; 
-    align-items: center; 
-    height: 100%; 
-    flex-direction: column; 
-}
-
-.closebtn {
-    cursor: pointer; 
-    margin-top: 15px; 
-}
-
-</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="/css/style.css" rel="stylesheet" />
 </head>
 <body>
 <div class="alert">
