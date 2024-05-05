@@ -14,30 +14,36 @@ function showAlertModal(title, content) {
     $('#alertModal').modal('show');
 }
 
-var socket = new WebSocket('ws://' + location.host + '/websocket');
 
-// Define the function to be called when a message is received
-socket.onmessage = function(event) {
-    console.log('Received: ' + event.data);
+var socket = null;
 
-    var data = JSON.parse(event.data);
-    var title = data.title;
-    var text = data.text;
+function connect() {
+    socket = new WebSocket('ws://' + location.host + '/websocket');
 
-    showAlertModal(title, text);
-};
+    socket.onopen = function(event) {
+        console.log('Websocket connection opened');
+    };
 
-// Define the function to be called when the connection is opened
-socket.onopen = function(event) {
-    console.log('Connection opened');
-};
+    // Define the function to be called when a message is received
+    socket.onmessage = function(event) {
+        console.log('Received: ' + event.data);
 
-// Define the function to be called when the connection is closed
-socket.onclose = function(event) {
-    console.log('Websocket connection closed');
-};
+        var data = JSON.parse(event.data);
+        var title = data.title;
+        var text = data.text;
 
-// Define the function to be called when an error occurs
-socket.onerror = function(error) {
-    console.log('Error: ' + error.message);
-};
+        showAlertModal(title, text);
+    };
+
+    socket.onclose = function(event) {
+        console.log('Websocket connection closed');
+        setTimeout(connect, 5000);  // Try to reconnect every 10 seconds
+    };
+
+    socket.onerror = function(error) {
+        console.log('Error: ' + error.message);
+        setTimeout(connect, 5000);  // Try to reconnect every 10 seconds
+    };
+}
+
+connect();
