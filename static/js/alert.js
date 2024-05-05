@@ -19,7 +19,8 @@ var socket = null;
 var retrying = false;
 
 function connect() {
-    socket = new WebSocket('ws://' + location.host + '/websocket');
+    var wsProtocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
+    socket = new WebSocket(wsProtocol + location.host + '/websocket');
 
     socket.onopen = function(event) {
         console.log('Websocket connection opened');
