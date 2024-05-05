@@ -21,4 +21,4 @@ EXPOSE 8023
 ENV FLASK_APP server.py
 
 # Run flask when the container launches
-CMD ["gunicorn", "-k", "geventwebsocket.gunicorn.workers.GeventWebSocketWorker", "--bind", "0.0.0.0:8023", "server:app"]
+CMD ["gunicorn", "--workers", "4", "--threads", "100", "--bind", "0.0.0.0:8023", "server:app"]

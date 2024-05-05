@@ -16,6 +16,7 @@ function showAlertModal(title, content) {
 
 
 var socket = null;
+var retrying = false;
 
 function connect() {
     socket = new WebSocket('ws://' + location.host + '/websocket');
@@ -37,13 +38,23 @@ function connect() {
 
     socket.onclose = function(event) {
         console.log('Websocket connection closed');
-        setTimeout(connect, 5000);  // Try to reconnect every 10 seconds
+        if (!retrying) {
+            retrying = true;
+            console.log('Reconnecting in 5 seconds');
+            setTimeout(connect, 5000);
+        }
     };
 
     socket.onerror = function(error) {
         console.log('Error: ' + error.message);
-        setTimeout(connect, 5000);  // Try to reconnect every 10 seconds
+        if (!retrying) {
+            retrying = true;
+            console.log('Reconnecting in 5 seconds');
+            setTimeout(connect, 5000);
+        }
     };
+
+    retrying = false;
 }
 
 connect();

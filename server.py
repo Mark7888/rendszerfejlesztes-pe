@@ -1,7 +1,6 @@
 from flask import Flask, render_template, Response, request, redirect, url_for, make_response
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sock import Sock
-import redis
 import threading
 import gevent
 from websocket import connections, listen_for_notifications, send_alert
@@ -201,7 +200,7 @@ def websocket(ws):
         return
 
     connections[current_user.id] = ws
-    while True:
+    while ws.connected:
         gevent.sleep(0.1)
 
 @app.route('/send_notification', methods=['POST'])
@@ -212,4 +211,4 @@ def send_notification():
 
 # DEBUG
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True, use_reloader=False)
+    app.run(host='0.0.0.0', port=8023, debug=True, use_reloader=False)
