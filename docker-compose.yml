@@ -11,6 +11,7 @@ services:
       - "8023:8023"
     depends_on:
       - db
+      - redis
   db:
     image: 'mariadb:latest'
     restart: unless-stopped
@@ -22,3 +23,7 @@ services:
       - MYSQL_HOST="0.0.0.0"
     volumes:
       - /var/lib/rendszer-fejlesztes/mysql:/var/lib/mysql
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"

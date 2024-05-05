@@ -1,7 +1,10 @@
 from flask import Flask, render_template, Response, request, redirect, url_for, make_response
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sock import Sock
-from websocket import connections
+import redis
+import threading
+import gevent
+from websocket import connections, listen_for_notifications, send_alert
 import hashlib
 import json
 from database_manager import DatabaseManager, APP_SECRET
@@ -137,6 +140,15 @@ def add_comment():
     username = current_user.id
     database_manager.add_comment(username, topic_id, comment)
 
+    # notify users on commend
+    targeted_users = database_manager.get_users_favorited_topic(topic_id)
+    topic_title = database_manager.get_topic(topic_id)['name']
+
+    title = f"New comment on topic: {topic_title}"
+    text = f"{username} commented on topic: '{comment}'"
+
+    send_alert(title, text, targeted_users)
+
     return Response(json.dumps({'status': 'success'}), mimetype='application/json')
 
 
@@ -181,32 +193,23 @@ def get_topics_commented():
 
 
 # Websocket alert
+threading.Thread(target=listen_for_notifications).start()
+
 @sock.route('/websocket')
 def websocket(ws):
     if not current_user.is_authenticated:
         return
 
     connections[current_user.id] = ws
-    try:
-        while True:
-            message = ws.receive()
-            if message is None:
-                continue
-            else:
-                for userid in connections:
-                    connections[userid].send(message)
-    finally:
-        connections.pop(current_user.id)
-
+    while True:
+        gevent.sleep(0.1)
 
 @app.route('/send_notification', methods=['POST'])
 def send_notification():
-    message = request.form.get('message')
-    for userid in connections:
-        connections[userid].send(message)
+    send_alert(request.form.get('title'), request.form.get('message'), [request.form.get('user')])
     return Response(json.dumps({'status': 'success'}), mimetype='application/json')
 
 
 # DEBUG
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True, use_reloader=False)

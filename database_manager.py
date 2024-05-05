@@ -136,6 +136,16 @@ class DatabaseManager:
     def remove_favorite_topic(self, username, topic_id):
         self.cursor.execute("DELETE FROM FavoriteTopics WHERE Username = %s AND TopicId = %s", (username, topic_id))
         self.connection.commit()
+    
+    def get_users_favorited_topic(self, topic_id):
+        self.cursor.execute("SELECT DISTINCT Username FROM FavoriteTopics WHERE TopicId = %s", (topic_id,))
+        users_data = self.cursor.fetchall()
+
+        users = []
+        for user_data in users_data:
+            users.append(user_data[0])
+
+        return users
 
     def get_topic_types(self):
         self.cursor.execute("SELECT * FROM TopicTypes")
