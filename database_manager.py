@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+APP_SECRET = getenv("APP_SECRET", "super-secret-2024")
+
 MYSQL_HOST = getenv("MYSQL_HOST")
 MYSQL_PORT = getenv("MYSQL_PORT")
 MYSQL_USER = getenv("MYSQL_USER")

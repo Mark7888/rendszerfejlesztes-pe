@@ -8,17 +8,17 @@ WORKDIR /app
 COPY requirements.txt /app
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir gunicorn
+RUN pip install --no-cache-dir gunicorn gevent-websocket
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Make port 8000 available to the world outside this container
-EXPOSE 8088
+# Make port 8023 available to the world outside this container
+EXPOSE 8023
 
 # Define environment variable
 ENV FLASK_APP server.py
 
 # Run flask when the container launches
-CMD ["gunicorn", "--bind", "0.0.0.0:8023", "server:app"]
+CMD ["gunicorn", "-k", "geventwebsocket.gunicorn.workers.GeventWebSocketWorker", "--bind", "0.0.0.0:8023", "server:app"]

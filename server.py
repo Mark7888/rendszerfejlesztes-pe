@@ -1,11 +1,10 @@
 from flask import Flask, render_template, Response, request, redirect, url_for, make_response
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Length, Email, EqualTo
+from flask_sock import Sock
+from websocket import connections
 import hashlib
 import json
-from database_manager import DatabaseManager
+from database_manager import DatabaseManager, APP_SECRET
 
 app = Flask(
     __name__,
@@ -13,7 +12,9 @@ app = Flask(
     static_folder='static',
     template_folder='templates'
 )
-app.config['SECRET_KEY'] = 'your-secret-key'  # replace 'your-secret-key' with your actual secret key
+app.config['SECRET_KEY'] = APP_SECRET
+
+sock = Sock(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -169,8 +170,6 @@ def remove_favorite():
 
     return Response(json.dumps({'status': 'success'}), mimetype='application/json')
 
-
-
 @app.route('/get_topics_commented', methods=['GET'])
 @login_required
 def get_topics_commented():
@@ -180,6 +179,32 @@ def get_topics_commented():
     topics = database_manager.get_topics_commented(username)
     return Response(json.dumps({'topics': topics}), mimetype='application/json')
 
+
+# Websocket alert
+@sock.route('/websocket')
+def websocket(ws):
+    if not current_user.is_authenticated:
+        return
+
+    connections[current_user.id] = ws
+    try:
+        while True:
+            message = ws.receive()
+            if message is None:
+                continue
+            else:
+                for userid in connections:
+                    connections[userid].send(message)
+    finally:
+        connections.pop(current_user.id)
+
+
+@app.route('/send_notification', methods=['POST'])
+def send_notification():
+    message = request.form.get('message')
+    for userid in connections:
+        connections[userid].send(message)
+    return Response(json.dumps({'status': 'success'}), mimetype='application/json')
 
 
 # DEBUG
